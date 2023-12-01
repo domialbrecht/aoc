@@ -2,17 +2,29 @@ use std::fs;
 
 fn main() {
     let contents = fs::read_to_string("input.txt").expect("Should read file");
-    process(&contents);
+    println!("{}", process(&contents));
 }
 
 fn process(input: &str) -> u32 {
-    let lines: Vec<String> = input
-        .lines()
-        .map(String::from)
-        .filter(|x| !x.is_empty())
-        .collect();
-    println!("{:?}", lines);
-    0
+    let mut max = 0;
+    //walk lines, add up until empty
+    // go to next line. reeat. if larger then before, replace
+    // do until end of file
+    let lines: Vec<String> = input.lines().map(String::from).collect();
+
+    let mut elf = 0;
+    for line in lines {
+        if line.is_empty() {
+            if elf > max {
+                max = elf;
+            }
+            elf = 0;
+            continue;
+        }
+        elf += line.parse::<u32>().expect("number");
+    }
+
+    max
 }
 
 #[cfg(test)]
