@@ -1,0 +1,8 @@
+[workspace]
+resolver = "2"
+
+members = ["day-*"]
+
+[workspace.dependencies]
+miette = { version = "5.10", features = ["fancy"] }
+thiserror = "1.0.50"
