@@ -24,7 +24,7 @@ enum Value {
 // ......755.
 // ...$.*....
 // .664.598..
-fn process(games: &str) -> u32 {
+fn process(games: &str) -> usize {
     let map = games
         .lines()
         .enumerate()
@@ -72,7 +72,10 @@ fn process(games: &str) -> u32 {
     // map: entire grid
     // numbers: sequential numbers
     let mut total = 0;
-    for num_list in numbers {
+    for symbol in map
+        .iter()
+        .filter(|(_key, value)| matches!(value, Value::Symbol('*')))
+    {
         // (x,y)
         let positions = [
             (1, 0),
@@ -84,37 +87,40 @@ fn process(games: &str) -> u32 {
             (0, 1),
             (1, 1),
         ];
-        let num_positions: Vec<(i32, i32)> = num_list.iter().map(|((y, x), _)| (*x, *y)).collect();
-        let pos_to_check: Vec<(i32, i32)> = num_list
+        let pos_to_check: Vec<(i32, i32)> = positions
             .iter()
-            .flat_map(|(pos, _)| {
-                positions.iter().map(|outer_pos| {
-                    // outer_pos.x + pos.x, .y + .y
-                    (outer_pos.0 + pos.1, outer_pos.1 + pos.0)
-                })
+            .map(|outer_pos| {
+                // outer_pos.x + pos.x, .y + .y
+                (outer_pos.0 + symbol.0 .1, outer_pos.1 + symbol.0 .0)
             })
-            .unique()
-            .filter(|num| !num_positions.contains(num))
             .collect();
 
         // dbg!(pos_to_check.len(), pos_to_check);
-        let is_part_number = pos_to_check.iter().any(|pos| {
-            let value = map.get(pos);
-            #[allow(clippy::match_like_matches_macro)]
-            if let Some(Value::Symbol(_)) = value {
-                true
-            } else {
-                false
-            }
-        });
+        let mut indexes_of_numbers = vec![];
 
-        if is_part_number {
-            total += num_list
+        for pos in pos_to_check {
+            for (i, num_list) in numbers.iter().enumerate() {
+                if num_list.iter().any(|(num_pos, _)| num_pos == &pos) {
+                    indexes_of_numbers.push(i);
+                }
+            }
+        }
+
+        let is_gear = indexes_of_numbers.iter().unique().count() == 2;
+
+        if is_gear {
+            total += indexes_of_numbers
                 .iter()
-                .map(|(_, num)| num.to_string())
-                .collect::<String>()
-                .parse::<u32>()
-                .unwrap()
+                .unique()
+                .map(|index| {
+                    numbers[*index]
+                        .iter()
+                        .map(|(_, num)| num.to_string())
+                        .collect::<String>()
+                        .parse::<usize>()
+                        .unwrap()
+                })
+                .product::<usize>();
         }
     }
 
@@ -128,6 +134,6 @@ mod tests {
     #[test]
     fn test_game() {
         let contents = fs::read_to_string("input-test.txt").expect("Should read file");
-        assert_eq!(process(&contents), 4361);
+        assert_eq!(process(&contents), 467835);
     }
 }

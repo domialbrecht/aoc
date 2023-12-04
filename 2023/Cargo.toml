@@ -6,3 +6,5 @@ members = ["day-*"]
 [workspace.dependencies]
 miette = { version = "5.10", features = ["fancy"] }
 thiserror = "1.0.50"
+itertools = "0.12.0"
+nom = "7.1.3"
