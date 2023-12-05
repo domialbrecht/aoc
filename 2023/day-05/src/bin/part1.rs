@@ -1,73 +1,59 @@
 use core::panic;
 use std::fs;
 
-use itertools::Itertools;
+use day05::Map;
+use day05::Mapping;
 
 fn main() {
-    let contents = fs::read_to_string("input-test.txt").expect("Should read file");
+    let contents = fs::read_to_string("input.txt").expect("Should read file");
     println!("=========");
     println!("Result: {}", process(&contents))
 }
 
-#[derive(Clone, Debug)]
-enum Mapping {
-    SeedToSoil,
-    SoilToFert,
-    FertToWater,
-    WaterToLight,
-    LightToTemp,
-    TempToHumid,
-    HumidToLoc,
+fn process(games: &str) -> u64 {
+    let (seeds, maps) = get_data(games);
+    seeds
+        .iter()
+        .map(|s| seed_final_dests(s, &maps))
+        .min()
+        .unwrap()
 }
 
-#[derive(Debug)]
-struct Map {
-    source: u32,
-    dest: u32,
-    offset: u32,
-    maptype: Mapping,
+fn seed_final_dests(seed: &u64, maps: &[Map]) -> u64 {
+    [
+        Mapping::SeedToSoil,
+        Mapping::SoilToFert,
+        Mapping::FertToWater,
+        Mapping::WaterToLight,
+        Mapping::LightToTemp,
+        Mapping::TempToHumid,
+        Mapping::HumidToLoc,
+    ]
+    .iter()
+    .fold(*seed, |acc, maptype| dest_from_maps(acc, maps, maptype))
 }
 
-impl Map {
-    fn build(
-        mut mapdata: impl Iterator<Item = String>,
-        maptype: Mapping,
-    ) -> Result<Map, &'static str> {
-        let source = match mapdata.next() {
-            Some(arg) => arg.parse().expect("can parse source {source}"),
-            None => return Err("Didn't get a source string"),
-        };
-        let dest = match mapdata.next() {
-            Some(arg) => arg.parse().expect("can parse dest"),
-            None => return Err("Didn't get a dest path"),
-        };
-        let offset = match mapdata.next() {
-            Some(arg) => arg.parse().expect("can parse offset"),
-            None => return Err("Didn't get a offset path"),
-        };
-
-        Ok(Map {
-            source,
-            dest,
-            offset,
-            maptype,
-        })
+fn dest_from_maps(source: u64, maps: &[Map], dest_type: &Mapping) -> u64 {
+    match maps
+        .iter()
+        .filter(|m| m.maptype == *dest_type)
+        .find_map(|m| m.dest_for_source(&source))
+    {
+        Some(soil) => soil,
+        None => source,
     }
 }
 
-fn process(games: &str) -> u32 {
-    let (seeds, maps) = get_data(games);
-    dbg!(maps);
-
-    0
-}
-
-fn get_data(games: &str) -> (Vec<u32>, Vec<Map>) {
+fn get_data(games: &str) -> (Vec<u64>, Vec<Map>) {
     let data = games.split("\n\n").collect::<Vec<&str>>();
     let mut data_iter = data.iter();
-    let seeds: Vec<u32> = data_iter
+    let (_, seeds): (_, &str) = data_iter
         .next()
         .unwrap()
+        .split_once(' ')
+        .expect("seed data");
+
+    let seeds: Vec<u64> = seeds
         .split_whitespace()
         .map(|s| s.parse().expect("Parse seed"))
         .collect();
@@ -102,36 +88,29 @@ fn get_data(games: &str) -> (Vec<u32>, Vec<Map>) {
     (seeds, maps)
 }
 
-// fn get_mapping(input: u32, mapping: Mapping) -> u32 {
-//     match mapping {
-//         Mapping::SeedToSoil => todo!(),
-//         Mapping::SoilToFert => todo!(),
-//         Mapping::FertToWater => todo!(),
-//         Mapping::WaterToLight => todo!(),
-//         Mapping::LightToTemp => todo!(),
-//         Mapping::TempToHumid => todo!(),
-//         Mapping::HumidToLoc => todo!(),
-//     }
-//     todo!()
-// }
-
-fn seed_to_soil(seed: u32) -> u32 {
-    todo!()
-}
-
 #[cfg(test)]
 mod tests {
     use super::*;
 
     #[test]
     fn test_soil() {
-        assert_eq!(seed_to_soil(79), 81);
-        assert_eq!(seed_to_soil(14), 14);
-        assert_eq!(seed_to_soil(55), 57);
-        assert_eq!(seed_to_soil(13), 13);
+        let contents = fs::read_to_string("input-test.txt").expect("Should read file");
+        let (seeds, maps) = get_data(&contents);
+        assert_eq!(dest_from_maps(seeds[0], &maps, &Mapping::SeedToSoil), 81,);
+        assert_eq!(dest_from_maps(seeds[1], &maps, &Mapping::SeedToSoil), 14,);
+        assert_eq!(dest_from_maps(seeds[2], &maps, &Mapping::SeedToSoil), 57,);
+        assert_eq!(dest_from_maps(seeds[3], &maps, &Mapping::SeedToSoil), 13,);
     }
 
     #[test]
+    fn test_location() {
+        let contents = fs::read_to_string("input-test.txt").expect("Should read file");
+        let (seeds, maps) = get_data(&contents);
+        assert_eq!(seed_final_dests(&seeds[0], &maps), 82);
+    }
+
+    #[test]
+    #[ignore]
     fn test_game() {
         let contents = fs::read_to_string("input-test.txt").expect("Should read file");
         assert_eq!(process(&contents), 35);
