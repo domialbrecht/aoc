@@ -27,6 +27,7 @@ impl<'a> Scratchcard<'a> {
                 0
             }
         });
+        println!("{}: {} matches", self.id, matches);
         if matches > 0 {
             2u32.pow(matches - 1)
         } else {
