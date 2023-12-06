@@ -8,3 +8,5 @@ edition = "2021"
 [dependencies]
 miette = { workspace = true }
 itertools = { workspace = true }
+indicatif = { workspace = true }
+rayon = { workspace = true }

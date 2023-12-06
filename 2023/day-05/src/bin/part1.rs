@@ -5,7 +5,7 @@ use day05::Map;
 use day05::Mapping;
 
 fn main() {
-    let contents = fs::read_to_string("input.txt").expect("Should read file");
+    let contents = fs::read_to_string("./day-05/input.txt").expect("Should read file");
     println!("=========");
     println!("Result: {}", process(&contents))
 }

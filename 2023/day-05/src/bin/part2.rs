@@ -1,20 +1,22 @@
-use core::panic;
 use std::fs;
 
 use day05::Map;
 use day05::Mapping;
+use indicatif::ParallelProgressIterator;
+use rayon::iter::IntoParallelIterator;
+use rayon::iter::ParallelIterator;
 
 fn main() {
-    let contents = fs::read_to_string("input.txt").expect("Should read file");
-    println!("=========");
+    let contents = fs::read_to_string("./day-05/input.txt").expect("Should read file");
     println!("Result: {}", process(&contents))
 }
 
 fn process(games: &str) -> u64 {
     let (seeds, maps) = get_data(games);
+    println!("Searching maps");
     seeds
-        .chunks(2)
-        .flat_map(|chunk| (chunk[0]..(chunk[0] + chunk[1])).collect::<Vec<u64>>())
+        .into_par_iter()
+        .progress()
         .map(|s| seed_final_dests(&s, &maps))
         .min()
         .unwrap()
@@ -49,6 +51,7 @@ fn get_data(games: &str) -> (Vec<u64>, Vec<Map>) {
     let data = games.split("\n\n").collect::<Vec<&str>>();
     let mut data_iter = data.iter();
 
+    println!("Getting data...");
     let (_, seeds): (_, &str) = data_iter
         .next()
         .unwrap()
@@ -58,6 +61,14 @@ fn get_data(games: &str) -> (Vec<u64>, Vec<Map>) {
         .split_whitespace()
         .map(|s| s.parse().expect("Parse seed"))
         .collect();
+    let seeds = seeds
+        .chunks_exact(2)
+        .flat_map(|chunkd| {
+            let start = chunkd[0];
+            let end = chunkd[1];
+            start..start + end
+        })
+        .collect::<Vec<u64>>();
 
     let mut maps: Vec<Map> = Vec::new();
     for line in data_iter {
@@ -92,16 +103,6 @@ fn get_data(games: &str) -> (Vec<u64>, Vec<Map>) {
 #[cfg(test)]
 mod tests {
     use super::*;
-
-    #[test]
-    fn test_soil() {
-        let contents = fs::read_to_string("input-test.txt").expect("Should read file");
-        let (seeds, maps) = get_data(&contents);
-        assert_eq!(dest_from_maps(seeds[0], &maps, &Mapping::SeedToSoil), 81,);
-        assert_eq!(dest_from_maps(seeds[1], &maps, &Mapping::SeedToSoil), 14,);
-        assert_eq!(dest_from_maps(seeds[2], &maps, &Mapping::SeedToSoil), 57,);
-        assert_eq!(dest_from_maps(seeds[3], &maps, &Mapping::SeedToSoil), 13,);
-    }
 
     #[test]
     fn test_location() {
