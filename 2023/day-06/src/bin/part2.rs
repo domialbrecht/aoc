@@ -1,7 +1,7 @@
 use std::fs;
 
 fn main() {
-    let contents = fs::read_to_string("./day-06/input.txt").expect("Should read file");
+    let contents = fs::read_to_string("./day-06/input2.txt").expect("Should read file");
     println!("=========");
     println!("Result: {}", process(&contents))
 }
@@ -11,7 +11,7 @@ fn process(games: &str) -> usize {
     data.iter().map(run_records).product()
 }
 
-fn run_records(run: &(u32, u32)) -> usize {
+fn run_records(run: &(u64, u64)) -> usize {
     let (max_time, distance) = *run;
     let wins = (0..max_time)
         .filter(|hold| {
@@ -23,13 +23,13 @@ fn run_records(run: &(u32, u32)) -> usize {
     wins
 }
 
-fn get_data(games: &str) -> Vec<(u32, u32)> {
+fn get_data(games: &str) -> Vec<(u64, u64)> {
     get_entries(games, 0)
         .zip(get_entries(games, 1))
         .skip(1)
         .inspect(|x| println!("{:?}", x))
-        .map(|(x, y)| (x.parse::<u32>().unwrap(), y.parse::<u32>().unwrap()))
-        .collect::<Vec<(u32, u32)>>()
+        .map(|(x, y)| (x.parse::<u64>().unwrap(), y.parse::<u64>().unwrap()))
+        .collect::<Vec<(u64, u64)>>()
 }
 
 fn get_entries(games: &str, line: usize) -> std::str::SplitWhitespace<'_> {
@@ -42,7 +42,7 @@ mod tests {
 
     #[test]
     fn test_game() {
-        let contents = fs::read_to_string("input-test.txt").expect("Should read file");
-        assert_eq!(process(&contents), 288);
+        let contents = fs::read_to_string("input2-test.txt").expect("Should read file");
+        assert_eq!(process(&contents), 71503);
     }
 }
