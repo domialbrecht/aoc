@@ -19,7 +19,7 @@ fn process(games: &str) -> u32 {
 }
 
 fn get_data(games: &str) -> Vec<(HandScore, u32)> {
-    let d = games
+    games
         .lines()
         .map(|line| {
             let (hand, bet) = line.split_once(' ').expect("split hand and bet");
@@ -28,9 +28,7 @@ fn get_data(games: &str) -> Vec<(HandScore, u32)> {
                 bet.parse::<u32>().expect("parse bet as u32"),
             )
         })
-        .collect();
-    dbg!(&d);
-    d
+        .collect()
 }
 
 #[cfg(test)]
@@ -40,6 +38,6 @@ mod tests {
     #[test]
     fn test_game() {
         let contents = fs::read_to_string("input-test.txt").expect("Should read file");
-        assert_eq!(process(&contents), 6440);
+        assert_eq!(process(&contents), 5905);
     }
 }

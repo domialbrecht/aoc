@@ -21,36 +21,12 @@ impl HandType {
     // 55331 3
     // 11432 4
     // 12345 5
-    // JJJJJ
-    fn get_type(mut card_counts: HashMap<char, usize>) -> HandType {
-        if let Some(i) = card_counts.get(&'J') {
-            if card_counts.len() > 1 {
-                let jcount = *i;
-                card_counts.remove_entry(&'J');
-                let mut best_key = 'J';
-                card_counts
-                    .iter()
-                    .max_set_by_key(|&(_, value)| value)
-                    .iter()
-                    .for_each(|(char, _)| {
-                        if card_score(**char) > card_score(best_key) {
-                            best_key = **char
-                        }
-                    });
-                card_counts.entry(best_key).and_modify(|e| *e += jcount);
-            }
-        }
-
-        dbg!(&card_counts);
-
+    fn get_type(card_counts: HashMap<char, usize>) -> HandType {
         if card_counts.len() == 1 {
             HandType::FiveKind
         } else if card_counts.len() == 2 && card_counts.values().any(|x| *x == 4) {
             HandType::FourKind
         } else if card_counts.len() == 2 {
-            //33322
-            //333JJ
-            //JJJ22
             HandType::FullHouse
         } else if card_counts.len() == 3 && card_counts.values().any(|x| *x == 3) {
             HandType::ThreeKind
@@ -63,17 +39,6 @@ impl HandType {
         } else {
             panic!("Invalid hand type")
         }
-    }
-}
-
-pub fn card_score(char: char) -> u32 {
-    match char {
-        'A' => 14,
-        'K' => 13,
-        'Q' => 12,
-        'T' => 10,
-        'J' => 1,
-        value => value.to_digit(10).unwrap(),
     }
 }
 
@@ -96,7 +61,19 @@ impl<'a> Hand<'a> {
     }
 
     pub fn hand_score(&self) -> HandScore {
-        let card_score = self.cards.chars().map(card_score).collect_tuple().unwrap();
+        let card_score = self
+            .cards
+            .chars()
+            .map(|char| match char {
+                'A' => 14,
+                'K' => 13,
+                'Q' => 12,
+                'J' => 11,
+                'T' => 10,
+                _ => char.to_digit(10).unwrap(),
+            })
+            .collect_tuple()
+            .unwrap();
         (self.handtype, card_score)
     }
 }
