@@ -14,43 +14,26 @@ pub enum HandType {
 }
 
 impl HandType {
-    // 55555 1
-    // 55551 2
-    // 55533 2
-    // 55521 3
-    // 55331 3
-    // 11432 4
-    // 12345 5
-    // JJJJJ
     fn get_type(mut card_counts: HashMap<char, usize>) -> HandType {
-        if let Some(i) = card_counts.get(&'J') {
+        if let Some(&jcount) = card_counts.get(&'J') {
             if card_counts.len() > 1 {
-                let jcount = *i;
-                card_counts.remove_entry(&'J');
-                let mut best_key = 'J';
-                card_counts
+                card_counts.remove(&'J');
+                if let Some((&best_key, _)) = card_counts
                     .iter()
-                    .max_set_by_key(|&(_, value)| value)
+                    .max_set_by_key(|&(_, &value)| (value))
                     .iter()
-                    .for_each(|(char, _)| {
-                        if card_score(**char) > card_score(best_key) {
-                            best_key = **char
-                        }
-                    });
-                card_counts.entry(best_key).and_modify(|e| *e += jcount);
+                    .max_by_key(|&(key, _)| card_score(**key))
+                {
+                    card_counts.entry(best_key).and_modify(|e| *e += jcount);
+                }
             }
         }
-
-        dbg!(&card_counts);
 
         if card_counts.len() == 1 {
             HandType::FiveKind
         } else if card_counts.len() == 2 && card_counts.values().any(|x| *x == 4) {
             HandType::FourKind
         } else if card_counts.len() == 2 {
-            //33322
-            //333JJ
-            //JJJ22
             HandType::FullHouse
         } else if card_counts.len() == 3 && card_counts.values().any(|x| *x == 3) {
             HandType::ThreeKind
