@@ -39,7 +39,7 @@ impl Graph {
             edges: input.clone(),
         }
     }
-    fn bfs_count(&self, start: IVec2) -> i32 {
+    fn bfs_distance(&self, start: IVec2) -> i32 {
         let mut frontier = VecDeque::new();
         frontier.push_front(start);
 
@@ -87,7 +87,7 @@ impl Graph {
 
     pub fn bfs_longest(&self, start: IVec2) -> i32 {
         println!("Reachable from {start}");
-        self.bfs_count(start)
+        self.bfs_distance(start)
     }
 
     pub fn has_edge(&self, node: IVec2) -> bool {
