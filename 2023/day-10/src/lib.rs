@@ -39,7 +39,32 @@ impl Graph {
             edges: input.clone(),
         }
     }
-    pub fn bfs(&self, start: IVec2) -> HashMap<IVec2, Option<IVec2>> {
+    fn bfs_count(&self, start: IVec2) -> i32 {
+        let mut frontier = VecDeque::new();
+        frontier.push_front(start);
+
+        let mut count = -1;
+        let mut reached: HashMap<IVec2, bool> = HashMap::new();
+        reached.insert(start, true);
+        while !frontier.is_empty() {
+            if let Some(current) = frontier.pop_front() {
+                println!("Visiting {:?}", &current);
+                self.neighbors(current).iter().for_each(|next| {
+                    if reached.get(next).is_none() {
+                        if next.x + next.y > current.y + current.x {
+                            count += 1;
+                        }
+                        frontier.push_front(*next);
+                        reached.insert(*next, true);
+                    }
+                })
+            }
+        }
+
+        count
+    }
+
+    fn bfs_from(&self, start: IVec2) -> HashMap<IVec2, Option<IVec2>> {
         let mut frontier = VecDeque::new();
         frontier.push_front(start);
 
@@ -60,8 +85,9 @@ impl Graph {
         came_from
     }
 
-    pub fn bfs_longest(&self, start: IVec2) -> usize {
-        todo!()
+    pub fn bfs_longest(&self, start: IVec2) -> i32 {
+        println!("Reachable from {start}");
+        self.bfs_count(start)
     }
 
     pub fn has_edge(&self, node: IVec2) -> bool {

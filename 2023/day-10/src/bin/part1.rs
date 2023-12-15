@@ -4,11 +4,11 @@ use day10::{input_to_char_grid, Graph};
 use glam::IVec2;
 
 fn main() {
-    let contents = fs::read_to_string("./day-10/input-test.txt").expect("Should read file");
+    let contents = fs::read_to_string("./day-10/input.txt").expect("Should read file");
     println!("=========");
     println!("Result: {}", process(&contents))
 }
-fn process(content: &str) -> u64 {
+fn process(content: &str) -> i32 {
     let (graph, startpos) = create_graph(content);
     draw_grid_with_graph(
         content
@@ -21,7 +21,7 @@ fn process(content: &str) -> u64 {
             .expect("Grid out of bounds"),
         &graph,
     );
-    64
+    graph.bfs_longest(startpos)
 }
 
 fn create_graph(content: &str) -> (Graph, IVec2) {
