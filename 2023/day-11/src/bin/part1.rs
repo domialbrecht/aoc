@@ -1,24 +1,26 @@
-use std::fs;
+use day11::part1::process;
+use miette::Context;
+use std::env;
 
-use itertools::{Itertools, Position};
+#[cfg(feature = "dhat-heap")]
+#[global_allocator]
+static ALLOC: dhat::Alloc = dhat::Alloc;
 
-fn main() {
-    let contents = fs::read_to_string("./day-09/input.txt").expect("Should read file");
-    println!("=========");
-    println!("Result: {}", process(&contents))
-}
+#[tracing::instrument]
+fn main() -> miette::Result<()> {
+    #[cfg(feature = "dhat-heap")]
+    let _profiler = dhat::Profiler::new_heap();
 
-fn process(content: &str) -> i64 {
-    todo!()
-}
+    #[cfg(not(feature = "dhat-heap"))]
+    tracing_subscriber::fmt::init();
 
-#[cfg(test)]
-mod tests {
-    use super::*;
+    let testonly = env::var("TEST_ONLY").is_ok();
+    println!("testonly: {}", testonly);
 
-    #[test]
-    fn test_game() {
-        let contents = fs::read_to_string("input-test.txt").expect("Should read file");
-        assert_eq!(process(&contents), 114);
-    }
+    let file = include_str!("../../input.txt");
+    let testfile = include_str!("../../input-test.txt");
+    let inputfile = if testonly { testfile } else { file };
+    let result = process(inputfile).context("process part 1")?;
+    println!("{}", result);
+    Ok(())
 }
