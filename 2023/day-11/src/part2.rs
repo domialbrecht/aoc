@@ -6,7 +6,7 @@ use crate::custom_error::AocError;
 use tracing::{info, span, Level};
 
 #[tracing::instrument(skip(content))]
-pub fn process(content: &str) -> miette::Result<String, AocError> {
+pub fn process(content: &str, expansion_size: i64) -> miette::Result<String, AocError> {
     let empty_rows = content
         .lines()
         .enumerate()
@@ -70,8 +70,8 @@ pub fn process(content: &str) -> miette::Result<String, AocError> {
             );
             my_span.in_scope(|| {
                 distance(
-                    expanded_galaxy(s[0], &empty_rows, &empty_columns),
-                    expanded_galaxy(s[1], &empty_rows, &empty_columns),
+                    expanded_galaxy(s[0], &empty_rows, &empty_columns, expansion_size),
+                    expanded_galaxy(s[1], &empty_rows, &empty_columns, expansion_size),
                 )
             })
         })
@@ -80,7 +80,12 @@ pub fn process(content: &str) -> miette::Result<String, AocError> {
     Ok(res.to_string())
 }
 
-fn expanded_galaxy(galaxy: &I64Vec2, empty_rows: &[usize], empty_cols: &[usize]) -> I64Vec2 {
+fn expanded_galaxy(
+    galaxy: &I64Vec2,
+    empty_rows: &[usize],
+    empty_cols: &[usize],
+    expansion_size: i64,
+) -> I64Vec2 {
     let expand_rows = empty_rows
         .iter()
         .position(|row| row > &(galaxy.y as usize))
@@ -90,7 +95,11 @@ fn expanded_galaxy(galaxy: &I64Vec2, empty_rows: &[usize], empty_cols: &[usize])
         .position(|col| col > &(galaxy.x as usize))
         .unwrap_or(empty_cols.len());
     info!(expand_rows, expand_cols);
-    *galaxy + I64Vec2::new(expand_cols as i64, expand_rows as i64)
+    *galaxy
+        + I64Vec2::new(
+            expand_cols as i64 * (expansion_size - 1),
+            expand_rows as i64 * (expansion_size - 1),
+        )
 }
 
 fn distance(first: I64Vec2, second: I64Vec2) -> i64 {
@@ -103,9 +112,13 @@ fn distance(first: I64Vec2, second: I64Vec2) -> i64 {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use rstest::rstest;
 
+    #[rstest]
+    #[case(10, 1030)]
+    #[case(100, 8410)]
     #[test_log::test]
-    fn test_process() -> miette::Result<()> {
+    fn test_process(#[case] expansion_size: i64, #[case] expected: i64) -> miette::Result<()> {
         let input = "...#......
 .......#..
 #.........
@@ -116,7 +129,7 @@ mod tests {
 ..........
 .......#..
 #...#.....";
-        assert_eq!("374", process(input)?);
+        assert_eq!(expected.to_string(), process(input, expansion_size)?);
         Ok(())
     }
 }

@@ -1,4 +1,4 @@
-use day11::part1::process;
+use day11::part2::process;
 use miette::Context;
 use std::env;
 
@@ -19,7 +19,7 @@ fn main() -> miette::Result<()> {
     let file = include_str!("../../input.txt");
     let testfile = include_str!("../../input-test.txt");
     let inputfile = if testonly { testfile } else { file };
-    let result = process(inputfile).context("process part 1")?;
+    let result = process(inputfile, 1000000).context("process part 1")?;
     println!("{}", result);
     Ok(())
 }
