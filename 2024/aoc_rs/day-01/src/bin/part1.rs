@@ -10,3 +10,4 @@ fn main() -> miette::Result<()> {
     println!("{}", result);
     Ok(())
 }
+
