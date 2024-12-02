@@ -32,6 +32,22 @@ defmodule ElixirAoc.Day01 do
   end
 
   def part2(content) do
-    :todo
+    content
+    |> String.split("\n", trim: true)
+    |> Enum.map(fn line ->
+      String.split(line, ~r/\s+/, trim: true)
+      |> Enum.map(&String.to_integer/1)
+      |> List.to_tuple()
+    end)
+    |> Enum.unzip()
+    |> (fn {left, right} ->
+          left
+          |> Enum.map(fn l ->
+            Enum.filter(right, fn r -> r == l end)
+            |> Enum.count()
+            |> (&(&1 * l)).()
+          end)
+        end).()
+    |> Enum.sum()
   end
 end
