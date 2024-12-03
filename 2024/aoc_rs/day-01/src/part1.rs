@@ -1,9 +1,27 @@
 #[tracing::instrument]
 pub fn process(_input: &str) -> miette::Result<String> {
-    return Ok("11".to_string());
-}
+    let (mut left, mut right): (Vec<usize>, Vec<usize>) = _input
+        .lines()
+        .filter_map(|line| {
+            line.split_once(' ').map(|(r, l)| {
+                (
+                    r.trim().parse::<usize>().unwrap(),
+                    l.trim().parse::<usize>().unwrap(),
+                )
+            })
+        })
+        .unzip();
 
-fn sort_list() {}
+    left.sort();
+    right.sort();
+
+    Ok(left
+        .iter()
+        .zip(right.iter())
+        .map(|(l, r)| l.abs_diff(*r))
+        .sum::<usize>()
+        .to_string())
+}
 
 #[cfg(test)]
 mod tests {
