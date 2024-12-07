@@ -11,9 +11,25 @@ use nom::{
 
 #[tracing::instrument]
 pub fn process(input: &str) -> miette::Result<String> {
-    let (_input, (orderings, updates)) =
+    let (_input, (page_orderings, page_updates)) =
         parse(input).map_err(|e| miette!("parset failed with {}", e))?;
-    Ok(11.to_string())
+
+    let result: u32 = page_updates
+        .iter()
+        .filter(|update| {
+            update.is_sorted_by(|a, b| {
+                page_orderings
+                    .get(a)
+                    .is_some_and(|page_order| page_order.contains(b))
+            })
+        })
+        .map(|update| {
+            let middle = update.len() / 2;
+            update[middle]
+        })
+        .sum();
+
+    Ok(result.to_string())
 }
 
 fn orderings(input: &str) -> IResult<&str, HashMap<u32, Vec<u32>>> {

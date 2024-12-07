@@ -1,6 +1,74 @@
+use std::{cmp::Ordering, collections::HashMap};
+
+use miette::miette;
+use nom::{
+    bytes::complete::tag,
+    character::complete::{self, line_ending},
+    multi::{fold_many1, separated_list1},
+    sequence::{separated_pair, terminated},
+    IResult,
+};
+
 #[tracing::instrument]
-pub fn process(_input: &str) -> miette::Result<String> {
-    todo!("day 01 - part 2");
+pub fn process(input: &str) -> miette::Result<String> {
+    let (_input, (page_orderings, mut page_updates)) =
+        parse(input).map_err(|e| miette!("parset failed with {}", e))?;
+
+    let result: u32 = page_updates
+        .iter_mut()
+        .filter(|update| {
+            !update.is_sorted_by(|a, b| {
+                page_orderings
+                    .get(a)
+                    .is_some_and(|page_order| page_order.contains(b))
+            })
+        })
+        .map(|update| {
+            update.sort_by(|a, b| {
+                if page_orderings
+                    .get(a)
+                    .is_some_and(|page_order| page_order.contains(b))
+                {
+                    Ordering::Less
+                } else {
+                    Ordering::Greater
+                }
+            });
+            update
+        })
+        .map(|update| {
+            let middle = update.len() / 2;
+            update[middle]
+        })
+        .sum();
+
+    Ok(result.to_string())
+}
+
+fn orderings(input: &str) -> IResult<&str, HashMap<u32, Vec<u32>>> {
+    fold_many1(
+        terminated(
+            separated_pair(complete::u32, tag("|"), complete::u32),
+            line_ending,
+        ),
+        HashMap::default,
+        |mut acc: HashMap<u32, Vec<u32>>, (page, needs_after)| {
+            acc.entry(page)
+                .and_modify(|needs| needs.push(needs_after))
+                .or_insert(vec![needs_after]);
+            acc
+        },
+    )(input)
+}
+
+fn updates(input: &str) -> IResult<&str, Vec<Vec<u32>>> {
+    separated_list1(line_ending, separated_list1(tag(","), complete::u32))(input)
+}
+
+fn parse(input: &str) -> IResult<&str, (HashMap<u32, Vec<u32>>, Vec<Vec<u32>>)> {
+    let (input, orderings) = terminated(orderings, line_ending)(input)?;
+    let (_input, updates) = updates(input)?;
+    Ok((input, (orderings, updates)))
 }
 
 #[cfg(test)]
@@ -9,9 +77,35 @@ mod tests {
 
     #[test]
     fn test_process() -> miette::Result<()> {
-        todo!("haven't built test yet");
-        let input = "";
-        assert_eq!("", process(input)?);
+        let input = "47|53
+97|13
+97|61
+97|47
+75|29
+61|13
+75|53
+29|13
+97|29
+53|29
+61|53
+97|53
+61|29
+47|13
+75|47
+97|75
+47|61
+75|61
+47|29
+75|13
+53|13
+
+75,47,61,53,29
+97,61,53,29,13
+75,29,13
+75,97,47,61,53
+61,13,29
+97,13,75,29,47";
+        assert_eq!("123", process(input)?);
         Ok(())
     }
 }
