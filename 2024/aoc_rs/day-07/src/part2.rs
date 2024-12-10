@@ -35,7 +35,7 @@ pub fn process(input: &str) -> miette::Result<String> {
 }
 
 fn find_evaluaiton(expectation: &u64, values: Vec<u64>) -> Option<&u64> {
-    let operations = [Operation::Add, Operation::Multiply];
+    let operations = [Operation::Add, Operation::Multiply, Operation::Concat];
     (0..values.len() - 1)
         .map(|_| operations)
         .multi_cartesian_product()
