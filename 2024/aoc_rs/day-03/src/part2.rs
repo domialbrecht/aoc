@@ -1,7 +1,9 @@
 use miette::miette;
 use nom::{
+    branch::alt,
     bytes::complete::tag,
     character::complete::{self, anychar},
+    combinator::value,
     multi::{many1, many_till},
     sequence::{delimited, separated_pair},
     IResult, Parser,
@@ -10,23 +12,55 @@ use nom::{
 #[tracing::instrument]
 pub fn process(input: &str) -> miette::Result<String> {
     let (_, instructions) = parse(input).map_err(|e| miette!("parse failed {}", e))?;
-    let result: u32 = instructions.iter().map(|inst| inst.0 * inst.1).sum();
+    let (_, result) =
+        instructions
+            .iter()
+            .fold((ShouldDo::Do, 0), |(process, acc), ins| match ins {
+                Instruction::Mul(a, b) => {
+                    if process == ShouldDo::Do {
+                        (process, acc + a * b)
+                    } else {
+                        (process, acc)
+                    }
+                }
+                Instruction::Do => (ShouldDo::Do, acc),
+                Instruction::Dont => (ShouldDo::Dont, acc),
+            });
     Ok(result.to_string())
 }
 
-type Instruction = (u32, u32);
+#[derive(PartialEq, Eq)]
+enum ShouldDo {
+    Do,
+    Dont,
+}
 
-// Change this to mul_instruction
-// Implement different instructions
-// Return instruction type along instruction
-fn instruction(input: &str) -> IResult<&str, Instruction> {
+#[derive(Clone, Debug)]
+enum Instruction {
+    Mul(u32, u32),
+    Do,
+    Dont,
+}
+
+fn mul(input: &str) -> IResult<&str, Instruction> {
     let (input, _) = tag("mul")(input)?;
     let (input, pair) = delimited(
         tag("("),
         separated_pair(complete::u32, tag(","), complete::u32),
         tag(")"),
     )(input)?;
-    Ok((input, pair))
+    Ok((input, Instruction::Mul(pair.0, pair.1)))
+}
+
+// Change this to mul_instruction
+// Implement different instructions
+// Return instruction type along instruction
+fn instruction(input: &str) -> IResult<&str, Instruction> {
+    alt((
+        value(Instruction::Dont, tag("don't()")),
+        value(Instruction::Do, tag("do()")),
+        mul,
+    ))(input)
 }
 
 // Use alt to match all instructions
