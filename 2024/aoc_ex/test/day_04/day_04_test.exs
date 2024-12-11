@@ -15,15 +15,15 @@ MXMXAXMASX") == 18
   end
 
   test "day_04 part2" do
-    assert ElixirAoc.Day04.part2(".M.S......
-..A..MSMS.
-.M.S.MAA..
-..A.ASMSM.
-.M.S.M....
-..........
-S.S.S.S.S.
-.A.A.A.A..
-M.M.M.M.M.
-..........") == 9
+    assert ElixirAoc.Day04.part2("MMMSXXMASM
+MSAMXMSMSA
+AMXSXMAAMM
+MSAMASMSMX
+XMASAMXAMM
+XXAMMXXAMA
+SMSMSASXSS
+SAXAMASAAA
+MAMMMXMMMM
+MXMXAXMASX") == 9
   end
 end
