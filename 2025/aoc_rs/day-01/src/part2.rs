@@ -5,16 +5,15 @@ pub fn process(_input: &str) -> miette::Result<String> {
     let (_, result) = _input
         .lines()
         .map(|line| {
-            let mut chars = line.chars();
-            let dir = chars.next().unwrap();
-            let amount: i32 = chars.as_str().trim().parse().unwrap();
-
-            match dir {
-                'L' => -amount,
-                _ => amount,
+            let (dir, num) = line.split_at(1);
+            let amount: i32 = num.trim().parse().unwrap();
+            if dir == "L" {
+                -amount
+            } else {
+                amount
             }
         })
-        .fold((50i32, 0i32), |(dial, result), steps| {
+        .fold((50, 0), |(dial, result), steps| {
             let next = dial + steps;
 
             let mut arounds = next.div(100).abs();
