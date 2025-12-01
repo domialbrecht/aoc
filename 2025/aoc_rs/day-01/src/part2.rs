@@ -2,34 +2,28 @@ use std::ops::Div;
 
 #[tracing::instrument]
 pub fn process(_input: &str) -> miette::Result<String> {
-    let instructions: Vec<i32> = _input
+    let (_, result) = _input
         .lines()
         .map(|line| {
             let mut chars = line.chars();
             let dir = chars.next().unwrap();
             let amount: i32 = chars.as_str().trim().parse().unwrap();
 
-            if let 'L' = dir {
-                -amount
-            } else {
-                amount
+            match dir {
+                'L' => -amount,
+                _ => amount,
             }
         })
-        .collect();
+        .fold((50i32, 0i32), |(dial, result), steps| {
+            let next = dial + steps;
 
-    let mut dial = 50;
-    let mut result = 0;
+            let mut arounds = next.div(100).abs();
+            if dial != 0 && next <= 0 {
+                arounds += 1;
+            }
 
-    for steps in instructions {
-        let next = dial + steps;
-        let mut arounds = next.div(100).abs();
-        if dial != 0 && next <= 0 {
-            arounds += 1;
-        }
-
-        dial = next.rem_euclid(100);
-        result += arounds;
-    }
+            (next.rem_euclid(100), result + arounds)
+        });
 
     Ok(result.to_string())
 }
